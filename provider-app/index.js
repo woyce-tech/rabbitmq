@@ -14,16 +14,16 @@ async function connectQueue() {
         await channel.assertExchange('Exchange_Two', 'direct', { durable: true });
         // Declare queues and bind them to Exchange One
         const queuesExchangeOne = ['queue1', 'queue2', 'queue3'];
-        queuesExchangeOne.forEach(async (queue) => {
+        await Promise.all(queuesExchangeOne.map(async (queue) => {
             await channel.assertQueue(queue, { durable: true });
             await channel.bindQueue(queue, 'Exchange_One', ''); // Use an appropriate routing key if needed
-        });
+        }));
         // Declare queues and bind them to Exchange Two
         const queuesExchangeTwo = ['queue4', 'queue5', 'queue6'];
-        queuesExchangeTwo.forEach(async (queue) => {
+        await Promise.all(queuesExchangeTwo.map(async (queue) => {
             await channel.assertQueue(queue, { durable: true });
             await channel.bindQueue(queue, 'Exchange_Two', ''); // Use an appropriate routing key if needed
-        });
+        }));
         console.log('Exchanges and Queues are set up and bound.');
     } catch (error) {
         console.error('Error in connectQueue:', error);
@@ -36,11 +36,16 @@ const sendDataToExchanges = async (data) => {
         throw new Error('Cannot send data: channel not initialized');
     }
     const bufferData = Buffer.from(JSON.stringify(data));
-    // Publish to Exchange One - replace '' with the appropriate routing key if needed
-    await channel.publish('Exchange_One', '', bufferData, { persistent: true });
-    // Publish to Exchange Two - replace '' with the appropriate routing key if needed
-    await channel.publish('Exchange_Two', '', bufferData, { persistent: true });
-    console.log('Data sent to both exchanges.');
+    try {
+        // Publish to Exchange One - replace '' with the appropriate routing key if needed
+        await channel.publish('Exchange_One', '', bufferData, { persistent: true });
+        // Publish to Exchange Two - replace '' with the appropriate routing key if needed
+        await channel.publish('Exchange_Two', '', bufferData, { persistent: true });
+        console.log('Data sent to both exchanges.');
+    } catch (error) {
+        console.error('Error while publishing:', error);
+        throw error;
+    }
 };
 app.get("/send-msg", async (req, res) => {
     const now = new Date();
@@ -58,4 +63,5 @@ app.get("/send-msg", async (req, res) => {
         res.status(500).send('Failed to send message to exchanges.');
     }
 });
+
 app.listen(PORT, () => console.log(`Server running at port ${PORT}`));
