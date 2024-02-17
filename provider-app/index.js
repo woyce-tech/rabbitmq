@@ -13,34 +13,42 @@ async function connectQueue() {
         await channel.assertExchange('Exchange_One', 'direct', { durable: true });
         await channel.assertExchange('Exchange_Two', 'direct', { durable: true });
         // Declare queues and bind them to Exchange One
-        const queuesExchangeOne = ['queue1', 'queue2', 'queue3'];
-        await Promise.all(queuesExchangeOne.map(async (queue) => {
-            await channel.assertQueue(queue, { durable: true });
-            await channel.bindQueue(queue, 'Exchange_One', ''); // Use an appropriate routing key if needed
+        const queuesExchangeOne = [
+            { name: 'queue1', routingKey: 'key1' },
+            { name: 'queue2', routingKey: 'key2' },
+            { name: 'queue3', routingKey: 'key3' }
+        ];
+        await Promise.all(queuesExchangeOne.map(async ({ name, routingKey }) => {
+            await channel.assertQueue(name, { durable: true });
+            await channel.bindQueue(name, 'Exchange_One', routingKey);
         }));
         // Declare queues and bind them to Exchange Two
-        const queuesExchangeTwo = ['queue4', 'queue5', 'queue6'];
-        await Promise.all(queuesExchangeTwo.map(async (queue) => {
-            await channel.assertQueue(queue, { durable: true });
-            await channel.bindQueue(queue, 'Exchange_Two', ''); // Use an appropriate routing key if needed
+        const queuesExchangeTwo = [
+            { name: 'queue4', routingKey: 'key4' },
+            { name: 'queue5', routingKey: 'key5' },
+            { name: 'queue6', routingKey: 'key6' }
+        ];
+        await Promise.all(queuesExchangeTwo.map(async ({ name, routingKey }) => {
+            await channel.assertQueue(name, { durable: true });
+            await channel.bindQueue(name, 'Exchange_Two', routingKey);
         }));
-        console.log('Exchanges and Queues are set up and bound.');
+        console.log('Exchanges, Queues, and Bindings are set up.');
     } catch (error) {
         console.error('Error in connectQueue:', error);
         throw error;
     }
 }
 connectQueue().catch(console.error);
-const sendDataToExchanges = async (data) => {
+const sendDataToExchanges = async (data, routingKeyOne, routingKeyTwo) => {
     if (!channel) {
         throw new Error('Cannot send data: channel not initialized');
     }
     const bufferData = Buffer.from(JSON.stringify(data));
     try {
-        // Publish to Exchange One - replace '' with the appropriate routing key if needed
-        await channel.publish('Exchange_One', '', bufferData, { persistent: true });
-        // Publish to Exchange Two - replace '' with the appropriate routing key if needed
-        await channel.publish('Exchange_Two', '', bufferData, { persistent: true });
+        // Publish to Exchange One
+        await channel.publish('Exchange_One', routingKeyOne, bufferData, { persistent: true });
+        // Publish to Exchange Two
+        await channel.publish('Exchange_Two', routingKeyTwo, bufferData, { persistent: true });
         console.log('Data sent to both exchanges.');
     } catch (error) {
         console.error('Error while publishing:', error);
@@ -55,7 +63,8 @@ app.get("/send-msg", async (req, res) => {
         time: istTime
     };
     try {
-        await sendDataToExchanges(data);
+        // Specify routing keys for each exchange
+        await sendDataToExchanges(data, 'key1', 'key4');
         console.log(`A message is sent to both exchanges at ${istTime}`);
         res.send(`Message Sent to Exchanges: ${istTime}`);
     } catch (error) {
