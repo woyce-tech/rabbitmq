@@ -17,7 +17,6 @@ def connect_queue():
     params = pika.URLParameters(AMQP_URL)
     connection = pika.BlockingConnection(params)
     channel = connection.channel()
-
     # Declare queues and consume messages for Exchange One and Two
     exchange_queues = {
         'Exchange One': ['queue1', 'queue2', 'queue3'],
