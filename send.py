@@ -5,20 +5,22 @@ from datetime import datetime
 import pytz
 import json
 
+# import pika
+
+print("pika version:", pika.__version__)
+
 app = Flask(__name__)
 PORT = int(os.environ.get('PORT', 4001))
 AMQP_URL = os.environ.get('AMQP_URL', 'amqp://guest:guest@localhost:5672/')
+# AMQP_URL = os.environ.get('AMQP_URL', 'amqp://guest:guest@redditmqmg.a2gkhna2h0crepaw.eastus.azurecontainer.io:5672/')
+# AMQP_URL = 'amqp://hcomb-rabbitmq-container.victoriousbush-67842c2f.eastus.azurecontainerapps.io:5672/'
 
 PARAMS = [  # Consolidating exchange and queue information to reduce redundancy
     ('Exchange_One', 'direct', [
-        {'name': 'queue1', 'routing_key': 'key1'},
-        {'name': 'queue2', 'routing_key': 'key2'},
-        {'name': 'queue3', 'routing_key': 'key3'}
+        {'name': 'queue1', 'routing_key': 'key1'}
     ]),
     ('Exchange_Two', 'direct', [
-        {'name': 'queue4', 'routing_key': 'key4'},
-        {'name': 'queue5', 'routing_key': 'key5'},
-        {'name': 'queue6', 'routing_key': 'key6'}
+        {'name': 'queue4', 'routing_key': 'key4'}
     ])
 ]
 

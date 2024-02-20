@@ -6,6 +6,7 @@ from threading import Thread
 app = Flask(__name__)
 PORT = int(os.environ.get('PORT', 4002))
 AMQP_URL = os.environ.get('AMQP_URL', 'amqp://localhost:5672')
+# AMQP_URL = os.environ.get('AMQP_URL', 'amqp://guest:guest@redditmqmg.a2gkhna2h0crepaw.eastus.azurecontainer.io:5672/')
 
 
 def on_message_callback(ch, method, properties, body):
